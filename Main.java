@@ -1,8 +1,6 @@
-import java.io.*;
 import java.util.*;
 
 class DigitalWallet {
-
     int balance;
     int userID;
 
@@ -23,7 +21,6 @@ class DigitalWallet {
         if (balance < amount) {
             return false;
         }
-
         balance -= amount;
         return true;
     }
@@ -34,31 +31,26 @@ class DigitalWallet {
 }
 
 public class Main {
-
     public static void main(String[] args) {
-
         Scanner in = new Scanner(System.in);
 
         System.out.println("Enter no. of users: ");
         int n = in.nextInt();
 
-        DigitalWallet[] users = new DigitalWallet[n];
+        Map<Integer, DigitalWallet> users = new HashMap<>();
 
         for (int i = 0; i < n; i++) {
-
-            System.out.println("UserId & Balance of user-" + i);
-
+            System.out.println("Enter User ID & Balance of user-" + i);
             int userID = in.nextInt();
             int init_balance = in.nextInt();
 
-            users[userID] = new DigitalWallet(userID, init_balance); // given, userID's are in the range of (0, n-1)
+            users.put(userID, new DigitalWallet(userID, init_balance));
         }
 
         System.out.println("Enter no. of transactions: ");
         int t = in.nextInt();
 
         for (int i = 0; i < t; i++) {
-
             System.out.println("Sender ID: ");
             int senderID = in.nextInt();
 
@@ -67,35 +59,29 @@ public class Main {
 
             System.out.println("Transaction amount: ");
             int amount = in.nextInt();
+            in.nextLine(); // Consume newline
 
-            if (users[senderID].sendAmount(amount)) {
+            if (!users.containsKey(senderID) || !users.containsKey(receiverID)) {
+                System.out.println("\nInvalid User ID. Transaction Failed.");
+                continue;
+            }
 
-                users[receiverID].receiveAmount((amount));
+            if (users.get(senderID).sendAmount(amount)) {
+                users.get(receiverID).receiveAmount(amount);
                 System.out.println("\nSuccess");
-
             } else {
                 System.out.println("\nFailure");
             }
-
         }
 
-        // sorting users objects based on their balance
+        // Sorting wallets based on balance using a list
 
-        for (int i = 0; i < n - 1; i++) {
-
-            for (int j = i + 1; j < n; j++) {
-                if (users[i].getBalance() > users[j].getBalance()) {
-                    DigitalWallet tempObject = users[i];
-                    users[i] = users[j];
-                    users[j] = tempObject;
-                }
-            }
-        }
+        List<DigitalWallet> sortedWallets = new ArrayList<>(users.values());
+        sortedWallets.sort(Comparator.comparingInt(DigitalWallet::getBalance));
 
         System.out.println("\nSorted Wallets based on their balances (low to high): ");
-
-        for (int i = 0; i < n; i++) {
-            System.out.println(users[i].userID + " " + users[i].getBalance());
+        for (DigitalWallet user : sortedWallets) {
+            System.out.println(user.getUserID() + " " + user.getBalance());
         }
 
         in.close();
